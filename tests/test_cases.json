@@ -1,0 +1,52 @@
+[
+  {
+    "id": "oscillation-1-2hz",
+    "prompt": "一台人形机器人上电后站立浑身 1-2 Hz 抖动，如何定位原因？",
+    "expected": ["先安全限幅/保护", "分 sensing/planning/control/mechanical", "用频率和相位判断闭环或机械", "给禁用 WBC/支撑/逐关节/日志实验", "不直接调参"]
+  },
+  {
+    "id": "camera-imu-head-torso",
+    "prompt": "头部相机和 IMU 体外标定后装到头部，躯干还有 IMU，是否需要整体标定？",
+    "expected": ["区分 intrinsics/extrinsics/time offset/sensor-to-link/kinematics", "刚性子组件条件", "头躯干有颈部自由度所以无固定外参", "需要时间同步和颈部零位"]
+  },
+  {
+    "id": "joint-ratio-sizing",
+    "prompt": "已知膝关节峰值 180 N·m、连续 60 N·m、峰值 10 rad/s，如何设计传动比？",
+    "expected": ["列公式", "检查 torque-speed-power", "反射惯量 J_load/i^2", "效率和热", "不编造电机型号"]
+  },
+  {
+    "id": "topology-optimization",
+    "prompt": "如何对人形机器人小腿骨架做拓扑优化轻量化？",
+    "expected": ["定义设计/非设计域", "多工况载荷", "刚度/强度/模态约束", "制造约束", "优化后重建并重新 FEA"]
+  },
+  {
+    "id": "wbc-redundancy",
+    "prompt": "WBC 如何处理高自由度冗余并保持动态平衡？",
+    "expected": ["QP/层级任务", "动力学和接触约束", "摩擦锥/力矩/关节限位", "ZMP/CoP/DCM/动量判据", "零空间策略"]
+  },
+  {
+    "id": "fatigue-test",
+    "prompt": "关节输出法兰需要疲劳寿命预测和测试方案。",
+    "expected": ["载荷谱", "材料 S-N 或 epsilon-N", "应力集中", "夹具和设备精度", "报告条件和不确定度"]
+  },
+  {
+    "id": "planetary-roller-screw",
+    "prompt": "行星滚珠丝杠用于膝关节线性执行器要关注哪些指标？",
+    "expected": ["导程/效率/寿命/刚度/预载/润滑", "轴向力和速度", "热和摩擦", "供应商数据需查证", "与旋转关节方案比较"]
+  },
+  {
+    "id": "sensor-latency",
+    "prompt": "机器人动作僵硬且高速时变差，怀疑传感器延迟，怎么验证？",
+    "expected": ["记录时间戳", "相位裕度", "IMU/编码器/总线延迟", "速度相关恶化", "控制带宽受限"]
+  },
+  {
+    "id": "paper-github-deep-research",
+    "prompt": "调研一种人形机器人 WBC+MPC 方案，要求找论文也找 GitHub 上类似实现。",
+    "expected": ["先论文/综述/教材", "再 GitHub 实现", "区分 peer-reviewed/preprint/repo", "检查 license/维护/可运行性", "不用 star 数代替正确性"]
+  },
+  {
+    "id": "basic-knowledge-without-research",
+    "prompt": "不跑调研，先用基础知识解释为什么固定基座机械臂模型不能直接用于人形机器人动态步行。",
+    "expected": ["浮动基座", "多接触", "接触约束", "执行器包络", "IK 不等于动力学可行"]
+  }
+]
