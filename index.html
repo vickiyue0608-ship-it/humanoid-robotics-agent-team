@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>人形机器人拆解式学习工作台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23fbf8f1' stroke='%23202827' stroke-width='2' d='M16 2 30 16 16 30 2 16Z'/%3E%3Cpath fill='%23b76524' d='m16 10 6 6-6 6-6-6Z'/%3E%3C/svg%3E" />
   <style>
     :root {
       color-scheme: light;
@@ -669,9 +670,10 @@
       bottom: 96px;
       z-index: 39;
       width: min(460px, calc(100vw - 28px));
-      max-height: min(760px, calc(100vh - 124px));
+      height: min(720px, calc(100dvh - 124px));
       display: none;
-      grid-template-rows: auto auto 1fr auto;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      overflow: hidden;
       border: 1px solid var(--line-strong);
       background: var(--panel);
       box-shadow: 0 24px 80px rgba(42, 37, 29, .24);
@@ -696,9 +698,17 @@
       font-family: var(--sans);
     }
 
+    .coach-head p {
+      margin: 0;
+      max-width: 340px;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
     .coach-close {
       width: 34px;
       height: 34px;
+      flex: 0 0 34px;
       border: 1px solid var(--line-strong);
       border-radius: 6px;
       background: transparent;
@@ -707,13 +717,55 @@
       line-height: 1;
     }
 
+    .coach-toolbar {
+      min-width: 0;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in oklch, var(--panel) 86%, white);
+    }
+
+    .coach-settings {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .coach-settings summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 16px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 780;
+      list-style: none;
+    }
+
+    .coach-settings summary::-webkit-details-marker { display: none; }
+
+    .coach-settings summary::after {
+      content: "+";
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .coach-settings[open] summary::after { content: "−"; }
+
+    .coach-profile-summary {
+      margin-left: auto;
+      overflow: hidden;
+      color: var(--muted);
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .coach-config {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
       padding: 12px 16px;
-      border-bottom: 1px solid var(--line);
-      background: color-mix(in oklch, var(--panel) 84%, white);
+      border-top: 1px solid var(--line);
+      background: var(--panel);
     }
 
     .coach-field {
@@ -743,11 +795,13 @@
     }
 
     .coach-actions {
-      display: flex;
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: max-content;
       gap: 7px;
-      flex-wrap: wrap;
-      padding: 0 16px 12px;
-      border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+      padding: 10px 16px;
+      scrollbar-width: thin;
     }
 
     .coach-actions button {
@@ -765,11 +819,13 @@
     }
 
     .coach-log {
+      min-height: 0;
       overflow-y: auto;
       padding: 14px 16px;
-      display: grid;
+      display: flex;
+      flex-direction: column;
       gap: 12px;
-      min-height: 260px;
+      overscroll-behavior: contain;
     }
 
     .coach-msg {
@@ -781,6 +837,8 @@
     }
 
     .coach-msg.user {
+      align-self: flex-end;
+      max-width: 88%;
       background: var(--blue-2);
       border-color: var(--blue);
     }
@@ -801,17 +859,52 @@
 
     .coach-input {
       display: grid;
-      gap: 8px;
-      padding: 12px 16px 16px;
+      gap: 7px;
+      padding: 12px 16px 14px;
       border-top: 1px solid var(--line);
       background: color-mix(in oklch, var(--panel) 88%, white);
     }
 
-    .coach-input-row {
+    .coach-composer {
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 8px;
-      align-items: end;
+      align-items: stretch;
+    }
+
+    .coach-composer textarea {
+      width: 100%;
+      min-width: 0;
+      max-height: 126px;
+      resize: none;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: #fffdf8;
+      color: var(--ink);
+      padding: 10px 11px;
+      line-height: 1.45;
+    }
+
+    .coach-composer textarea:focus {
+      border-color: var(--blue);
+      outline: 2px solid color-mix(in oklch, var(--blue) 24%, transparent);
+      outline-offset: 1px;
+    }
+
+    .coach-composer-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 0;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .coach-composer-meta span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .coach-send {
@@ -822,6 +915,76 @@
       color: var(--panel);
       padding: 9px 11px;
       cursor: pointer;
+    }
+
+    .coach-send:disabled {
+      cursor: default;
+      opacity: .38;
+    }
+
+    .coach-welcome {
+      display: grid;
+      gap: 9px;
+      padding: 4px 0 2px;
+    }
+
+    .coach-welcome h3 {
+      margin: 0;
+      font-family: var(--sans);
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .coach-welcome p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .coach-prompts {
+      display: grid;
+      gap: 7px;
+      margin-top: 3px;
+    }
+
+    .coach-prompt {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fffdf8;
+      color: var(--ink);
+      padding: 10px 11px;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .coach-prompt::after {
+      content: "→";
+      color: var(--orange);
+      font-size: 17px;
+    }
+
+    .coach-prompt:hover,
+    .coach-prompt:focus-visible {
+      border-color: var(--blue);
+      background: var(--blue-2);
+      outline: none;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     .coach-quiz {
@@ -892,14 +1055,28 @@
       }
 
       .coach-panel {
-        right: 14px;
-        bottom: 88px;
-        max-height: calc(100vh - 108px);
+        inset: 0;
+        z-index: 60;
+        width: 100%;
+        height: 100dvh;
+        border: 0;
       }
 
-      .coach-config,
-      .coach-input-row {
+      .coach-config {
         grid-template-columns: 1fr;
+      }
+
+      .coach-toggle {
+        right: 14px;
+        bottom: 14px;
+      }
+
+      .coach-head {
+        padding-top: max(16px, env(safe-area-inset-top));
+      }
+
+      .coach-input {
+        padding-bottom: max(14px, env(safe-area-inset-bottom));
       }
     }
   </style>
@@ -1104,38 +1281,43 @@
       <div>
         <div class="eyebrow">Learning coach agent</div>
         <h2>人形机器人学习教练</h2>
-        <p class="muted">页面内知识库版本：检索当前结构化资料，不联网，不编造未核参数。</p>
+        <p class="muted">基于当前页面证据回答；未核实的参数会明确标注。</p>
       </div>
       <button class="coach-close" id="coachClose" aria-label="关闭学习教练">×</button>
     </div>
 
-    <div>
-      <div class="coach-config">
-        <div class="coach-field">
-          <label for="coachLevel">背景</label>
-          <select id="coachLevel">
-            <option value="junior">初级工程师</option>
-            <option value="mid">中级工程师</option>
-            <option value="senior">高级/专项工程师</option>
-          </select>
+    <div class="coach-toolbar">
+      <details class="coach-settings">
+        <summary>
+          <span>学习设置</span>
+          <span class="coach-profile-summary" id="coachProfileSummary">初级工程师 · 建立选型能力</span>
+        </summary>
+        <div class="coach-config">
+          <div class="coach-field">
+            <label for="coachLevel">背景</label>
+            <select id="coachLevel">
+              <option value="junior">初级工程师</option>
+              <option value="mid">中级工程师</option>
+              <option value="senior">高级/专项工程师</option>
+            </select>
+          </div>
+          <div class="coach-field">
+            <label for="coachGoal">目标</label>
+            <select id="coachGoal">
+              <option value="selection">建立选型能力</option>
+              <option value="diagnosis">训练故障诊断</option>
+              <option value="supplier">理解供应链</option>
+              <option value="validation">掌握测试验证</option>
+            </select>
+          </div>
+          <div class="coach-field wide">
+            <label for="coachBackground">你的当前任务</label>
+            <input id="coachBackground" type="text" placeholder="例：刚开始做人形机器人关节模组选型" />
+          </div>
         </div>
-        <div class="coach-field">
-          <label for="coachGoal">目标</label>
-          <select id="coachGoal">
-            <option value="selection">建立选型能力</option>
-            <option value="diagnosis">训练故障诊断</option>
-            <option value="supplier">理解供应链</option>
-            <option value="validation">掌握测试验证</option>
-          </select>
-        </div>
-        <div class="coach-field wide">
-          <label for="coachBackground">你的当前任务</label>
-          <input id="coachBackground" type="text" placeholder="例：刚开始做人形机器人关节模组选型" />
-        </div>
-      </div>
+      </details>
       <div class="coach-actions" id="coachActions">
         <button data-coach-action="route">学习路线</button>
-        <button data-coach-action="answer">当前页问答</button>
         <button data-coach-action="search">检索资料</button>
         <button data-coach-action="quiz">生成测试题</button>
         <button data-coach-action="compare">比较方案</button>
@@ -1144,16 +1326,28 @@
       </div>
     </div>
 
-    <div class="coach-log" id="coachLog" aria-live="polite"></div>
+    <div class="coach-log" id="coachLog" role="log" aria-live="polite">
+      <div class="coach-welcome" id="coachWelcome">
+        <h3>今天想解决什么问题？</h3>
+        <p>直接提问，或者从当前页面的一个工程问题开始。</p>
+        <div class="coach-prompts">
+          <button class="coach-prompt" type="button" data-coach-prompt="这个部件最关键的选型约束是什么？">这个部件最关键的选型约束是什么？</button>
+          <button class="coach-prompt" type="button" data-coach-prompt="请比较当前页面的技术方案">请比较当前页面的技术方案</button>
+          <button class="coach-prompt" type="button" data-coach-prompt="根据当前页面给我出三道测试题">根据当前页面给我出三道测试题</button>
+          <button class="coach-prompt" type="button" data-coach-prompt="当前结论有哪些需要进一步核实？">当前结论有哪些需要进一步核实？</button>
+        </div>
+      </div>
+    </div>
 
     <form class="coach-input" id="coachForm">
-      <div class="coach-field">
-        <label for="coachQuestion">问题</label>
-        <textarea id="coachQuestion" rows="2" placeholder="问当前零部件、供应链、成本、测试或选型问题"></textarea>
+      <label class="sr-only" for="coachQuestion">输入你的问题</label>
+      <div class="coach-composer">
+        <textarea id="coachQuestion" rows="2" placeholder="例如：髋关节模组该如何确定减速比？"></textarea>
+        <button class="coach-send" id="coachSend" type="submit" disabled>发送</button>
       </div>
-      <div class="coach-input-row">
-        <p class="muted" id="coachContext">当前上下文：髋关节模组 / 髋关节总成</p>
-        <button class="coach-send" type="submit">发送</button>
+      <div class="coach-composer-meta">
+        <span id="coachContext">当前：髋关节模组 / 髋关节总成</span>
+        <span>页面知识库</span>
       </div>
     </form>
   </section>
@@ -1804,10 +1998,12 @@
     const coachLog = document.getElementById("coachLog");
     const coachForm = document.getElementById("coachForm");
     const coachQuestion = document.getElementById("coachQuestion");
+    const coachSend = document.getElementById("coachSend");
     const coachLevel = document.getElementById("coachLevel");
     const coachGoal = document.getElementById("coachGoal");
     const coachBackground = document.getElementById("coachBackground");
     const coachContext = document.getElementById("coachContext");
+    const coachProfileSummary = document.getElementById("coachProfileSummary");
     const coachActions = document.getElementById("coachActions");
     const coachState = { lastQuiz: null };
 
@@ -1822,21 +2018,14 @@
     function renderCoachContext() {
       if (!coachContext) return;
       const sub = currentSubpage();
-      coachContext.textContent = `当前上下文：${selectedComponent.name} / ${sub.title}`;
+      coachContext.textContent = `当前：${selectedComponent.name} / ${sub.title}`;
     }
 
     function openCoach() {
       coachPanel.classList.add("open");
       coachPanel.setAttribute("aria-hidden", "false");
       coachToggle.setAttribute("aria-expanded", "true");
-      if (!coachLog.dataset.ready) {
-        coachLog.dataset.ready = "true";
-        coachAdd("agent", "已进入学习教练模式", `
-          <p>${tag("事实/页面知识库", "confirmed")} 我会优先使用当前页面的 BOM、原理、难点、供应链、成本压力、证据流和训练题。</p>
-          <p>${tag("边界", "unverified")} 本版不联网、不读取外部数据手册；涉及价格、型号参数、供应商导入状态时会标为待核实。</p>
-        `);
-      }
-      coachQuestion.focus();
+      window.setTimeout(() => coachQuestion.focus(), 0);
     }
 
     function closeCoach() {
@@ -1846,12 +2035,18 @@
     }
 
     function coachAdd(role, title, html) {
+      const welcome = document.getElementById("coachWelcome");
+      if (welcome) welcome.remove();
       const message = document.createElement("div");
       message.className = `coach-msg ${role === "user" ? "user" : "agent"}`;
       message.innerHTML = `<strong>${escapeHtml(title)}</strong>${html}`;
       coachLog.appendChild(message);
       coachLog.scrollTop = coachLog.scrollHeight;
       return message;
+    }
+
+    function syncComposerState() {
+      coachSend.disabled = coachQuestion.value.trim().length === 0;
     }
 
     function learnerProfile() {
@@ -1871,6 +2066,11 @@
         goal: goalMap[coachGoal.value],
         background: coachBackground.value.trim() || "未填写具体任务"
       };
+    }
+
+    function renderCoachProfileSummary() {
+      const profile = learnerProfile();
+      coachProfileSummary.textContent = `${profile.level} · ${profile.goal}`;
     }
 
     function knowledgeIndex() {
@@ -2120,6 +2320,16 @@
     function handleCoachAction(action) {
       openCoach();
       const question = coachQuestion.value.trim();
+      const labels = {
+        route: "为我规划学习路线",
+        answer: "回答当前问题",
+        search: "检索相关资料",
+        quiz: "根据当前页面出题",
+        compare: "比较当前技术方案",
+        next: "推荐下一篇内容",
+        engineering: "查看工程 Agent 蓝图"
+      };
+      coachAdd("user", "你的指令", `<p>${escapeHtml(question ? `${labels[action]}：${question}` : labels[action])}</p>`);
       if (action === "route") renderLearningRoute();
       if (action === "answer") renderQuestionAnswer(question);
       if (action === "search") renderSearch(question);
@@ -2127,6 +2337,34 @@
       if (action === "compare") renderComparison(question);
       if (action === "next") renderNextRecommendation();
       if (action === "engineering") renderEngineeringBlueprint();
+    }
+
+    function sendCoachMessage(question) {
+      const value = String(question || "").trim();
+      if (!value) {
+        coachQuestion.focus();
+        return;
+      }
+      openCoach();
+      coachAdd("user", "你的问题", `<p>${escapeHtml(value)}</p>`);
+      const lower = value.toLowerCase();
+      if (lower.includes("测试题") || lower.includes("出题") || lower.includes("测验")) {
+        renderQuiz();
+      } else if (lower.includes("比较") || lower.includes("对比")) {
+        renderComparison(value);
+      } else if (lower.includes("学习路线") || lower.includes("怎么学")) {
+        renderLearningRoute();
+      } else if (lower.includes("检索") || lower.includes("查资料") || lower.includes("找资料")) {
+        renderSearch(value);
+      } else if (lower.includes("下一篇") || lower.includes("接下来学")) {
+        renderNextRecommendation();
+      } else if (lower.includes("工程 agent") || lower.includes("工程agent")) {
+        renderEngineeringBlueprint();
+      } else {
+        renderQuestionAnswer(value);
+      }
+      coachQuestion.value = "";
+      syncComposerState();
     }
 
     coachToggle.addEventListener("click", () => {
@@ -2142,12 +2380,25 @@
 
     coachForm.addEventListener("submit", event => {
       event.preventDefault();
-      const question = coachQuestion.value.trim();
-      if (!question) return;
-      coachAdd("user", "你的问题", `<p>${escapeHtml(question)}</p>`);
-      renderQuestionAnswer(question);
-      coachQuestion.value = "";
+      sendCoachMessage(coachQuestion.value);
     });
+
+    coachQuestion.addEventListener("input", syncComposerState);
+    coachQuestion.addEventListener("keydown", event => {
+      if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+        event.preventDefault();
+        if (!coachSend.disabled) coachForm.requestSubmit();
+      }
+    });
+
+    document.querySelectorAll("[data-coach-prompt]").forEach(button => {
+      button.addEventListener("click", () => sendCoachMessage(button.dataset.coachPrompt));
+    });
+
+    coachLevel.addEventListener("change", renderCoachProfileSummary);
+    coachGoal.addEventListener("change", renderCoachProfileSummary);
+    renderCoachProfileSummary();
+    syncComposerState();
 
     document.querySelectorAll("[data-component]").forEach(el => {
       const component = components.find(item => item.id === el.dataset.component);
