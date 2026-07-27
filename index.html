@@ -1,0 +1,1546 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>人形机器人拆解式学习工作台</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f4f0e8;
+      --panel: #fbf8f1;
+      --panel-2: #ece7dc;
+      --ink: #202827;
+      --muted: #68716e;
+      --line: #c8c0ae;
+      --line-strong: #8f938b;
+      --blue: #275d75;
+      --blue-2: #d7e8ec;
+      --green: #37664e;
+      --green-2: #dfeadd;
+      --orange: #b76524;
+      --orange-2: #f4dfc7;
+      --red: #9d3f37;
+      --red-2: #efd7d3;
+      --steel: #667276;
+      --shadow: 0 18px 48px rgba(42, 37, 29, .13);
+      --radius: 8px;
+      --mono: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+      --sans: "Aptos", "Segoe UI", "Microsoft YaHei", sans-serif;
+      --serif: Georgia, "Times New Roman", "SimSun", serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--sans);
+      line-height: 1.55;
+      letter-spacing: 0;
+      background:
+        linear-gradient(90deg, rgba(32, 40, 39, .045) 1px, transparent 1px) 0 0 / 42px 42px,
+        linear-gradient(0deg, rgba(32, 40, 39, .04) 1px, transparent 1px) 0 0 / 42px 42px,
+        var(--paper);
+    }
+
+    button, input, select { font: inherit; }
+
+    a { color: inherit; }
+
+    .shell {
+      width: min(1420px, calc(100% - 28px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(14px);
+      background: color-mix(in oklch, var(--paper) 88%, transparent);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 62px;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      display: inline-grid;
+      place-items: center;
+      border: 2px solid var(--ink);
+      transform: rotate(45deg);
+    }
+
+    .brand-mark span {
+      display: block;
+      width: 8px;
+      height: 8px;
+      background: var(--orange);
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .nav button,
+    .ghost-button,
+    .primary-button {
+      border: 1px solid var(--line-strong);
+      background: transparent;
+      color: var(--ink);
+      min-height: 34px;
+      padding: 7px 11px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+
+    .nav button:hover,
+    .ghost-button:hover,
+    .primary-button:hover {
+      transform: translateY(-1px);
+      border-color: var(--ink);
+      background: color-mix(in oklch, var(--panel) 75%, white);
+    }
+
+    .primary-button {
+      background: var(--ink);
+      color: var(--panel);
+      border-color: var(--ink);
+    }
+
+    .hero {
+      min-height: calc(100vh - 62px);
+      padding: clamp(22px, 4vw, 54px) 0 28px;
+      display: grid;
+      align-items: stretch;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(360px, .9fr) minmax(430px, 1.1fr);
+      gap: clamp(20px, 3vw, 42px);
+      align-items: stretch;
+    }
+
+    .robot-stage {
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.58), rgba(255,255,255,.16)),
+        var(--panel);
+      box-shadow: var(--shadow);
+      min-height: 690px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: clamp(18px, 2vw, 28px);
+    }
+
+    .stage-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: start;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 16px;
+    }
+
+    h1, h2, h3, h4, p { margin-top: 0; }
+
+    h1 {
+      font-family: var(--serif);
+      font-size: clamp(36px, 5vw, 68px);
+      line-height: .96;
+      letter-spacing: 0;
+      margin-bottom: 14px;
+    }
+
+    h2 {
+      font-size: clamp(25px, 3vw, 40px);
+      line-height: 1.08;
+      margin-bottom: 12px;
+    }
+
+    h3 {
+      font-size: 19px;
+      margin-bottom: 10px;
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--orange);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 10px;
+    }
+
+    .muted { color: var(--muted); }
+
+    .robot-wrap {
+      display: grid;
+      place-items: center;
+      padding: 18px 0;
+      min-height: 520px;
+    }
+
+    .robot-svg {
+      width: min(100%, 410px);
+      height: auto;
+      overflow: visible;
+    }
+
+    .robot-part {
+      cursor: pointer;
+      transition: opacity .2s ease, transform .2s ease, fill .2s ease;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .robot-part:hover,
+    .robot-part.active {
+      transform: scale(1.035);
+      fill: var(--orange);
+      opacity: 1;
+    }
+
+    .robot-joint {
+      fill: var(--blue);
+      stroke: var(--ink);
+      stroke-width: 2;
+    }
+
+    .robot-link {
+      fill: #d8d1c2;
+      stroke: var(--ink);
+      stroke-width: 2;
+    }
+
+    .robot-core {
+      fill: #c7d8d7;
+      stroke: var(--ink);
+      stroke-width: 2;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+    }
+
+    .legend-row button {
+      border: 1px solid var(--line);
+      background: transparent;
+      border-radius: 999px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    .legend-row button.active {
+      background: var(--ink);
+      color: var(--panel);
+      border-color: var(--ink);
+    }
+
+    .intro-panel {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 18px;
+    }
+
+    .statement {
+      padding: clamp(20px, 3vw, 34px);
+      border: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .learning-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .level {
+      border: 1px solid var(--line);
+      background: color-mix(in oklch, var(--panel) 86%, var(--panel-2));
+      padding: 14px;
+      min-height: 128px;
+    }
+
+    .level strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    .focus-card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: clamp(18px, 2.4vw, 28px);
+    }
+
+    .focus-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .metric {
+      border-left: 3px solid var(--blue);
+      padding-left: 12px;
+      min-height: 58px;
+    }
+
+    .metric b {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .metric span {
+      font-weight: 750;
+    }
+
+    .component-page {
+      padding: 44px 0 64px;
+      border-top: 1px solid var(--line);
+    }
+
+    .component-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(280px, .9fr);
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 22px;
+    }
+
+    .component-header h2 {
+      font-family: var(--serif);
+      font-size: clamp(34px, 4vw, 58px);
+    }
+
+    .component-tabs,
+    .sub-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 18px 0 22px;
+    }
+
+    .component-tabs button,
+    .sub-tabs button {
+      border: 1px solid var(--line-strong);
+      background: transparent;
+      border-radius: 6px;
+      padding: 8px 10px;
+      cursor: pointer;
+      min-height: 38px;
+    }
+
+    .component-tabs button.active,
+    .sub-tabs button.active {
+      background: var(--ink);
+      color: var(--panel);
+      border-color: var(--ink);
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: minmax(330px, .82fr) minmax(0, 1.18fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .detail-grid > *,
+    .section-grid > * {
+      min-width: 0;
+    }
+
+    .exploded-board,
+    .content-board {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .exploded-board {
+      position: sticky;
+      top: 82px;
+      padding: 18px;
+    }
+
+    .diagram-frame {
+      min-height: 360px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(90deg, rgba(32,40,39,.045) 1px, transparent 1px) 0 0 / 24px 24px,
+        linear-gradient(0deg, rgba(32,40,39,.04) 1px, transparent 1px) 0 0 / 24px 24px,
+        #f8f5ee;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .diagram-frame svg {
+      width: 100%;
+      max-width: 460px;
+      height: auto;
+    }
+
+    .parts-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .part-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: start;
+      border-bottom: 1px solid var(--line);
+      border-left: 0;
+      border-right: 0;
+      border-top: 0;
+      padding: 8px 0;
+      font-size: 14px;
+      width: 100%;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .part-row:hover,
+    .part-row.expanded {
+      color: var(--blue);
+    }
+
+    .part-row.expanded .tag {
+      background: var(--blue-2);
+      border-color: var(--blue);
+    }
+
+    .part-index {
+      font-family: var(--mono);
+      color: var(--orange);
+    }
+
+    .part-detail {
+      display: none;
+      border-left: 3px solid var(--blue);
+      background: color-mix(in oklch, var(--blue-2) 34%, transparent);
+      padding: 10px 12px;
+      margin: 0 0 8px;
+      font-size: 13px;
+    }
+
+    .part-detail.show {
+      display: block;
+    }
+
+    .part-detail dl {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 5px 10px;
+      margin: 0;
+    }
+
+    .part-detail dt {
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .part-detail dd {
+      margin: 0;
+    }
+
+    .content-board {
+      padding: clamp(18px, 2vw, 26px);
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .module {
+      border: 1px solid var(--line);
+      background: color-mix(in oklch, var(--panel) 86%, white);
+      padding: 16px;
+      min-height: 160px;
+    }
+
+    .module.wide { grid-column: 1 / -1; }
+
+    .module h3 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+
+    .module h3::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      background: var(--orange);
+      transform: rotate(45deg);
+      flex: 0 0 auto;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      max-width: 100%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+      font-size: 14px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--panel-2);
+      font-size: 13px;
+      color: #3a4441;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+    th:last-child, td:last-child { border-right: 0; }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      padding: 3px 8px;
+      margin: 2px 4px 2px 0;
+      font-size: 12px;
+      white-space: nowrap;
+      background: var(--panel);
+    }
+
+    .tag.confirmed { background: var(--green-2); border-color: var(--green); }
+    .tag.inferred { background: var(--orange-2); border-color: var(--orange); }
+    .tag.unverified { background: var(--red-2); border-color: var(--red); }
+    .tag.source { background: var(--blue-2); border-color: var(--blue); }
+
+    .cost-bars {
+      display: grid;
+      gap: 10px;
+    }
+
+    .cost-row {
+      display: grid;
+      grid-template-columns: 130px 1fr 82px;
+      gap: 10px;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .bar {
+      height: 12px;
+      background: #ddd5c6;
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--orange));
+    }
+
+    .evidence-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .evidence {
+      border-left: 3px solid var(--blue);
+      padding: 8px 10px;
+      background: color-mix(in oklch, var(--blue-2) 38%, transparent);
+    }
+
+    .evidence a {
+      color: var(--blue);
+      font-weight: 750;
+    }
+
+    .training {
+      display: grid;
+      gap: 10px;
+    }
+
+    .choice {
+      border: 1px solid var(--line);
+      padding: 10px;
+      cursor: pointer;
+      background: transparent;
+      text-align: left;
+      border-radius: 6px;
+    }
+
+    .choice:hover,
+    .choice.selected {
+      border-color: var(--orange);
+      background: var(--orange-2);
+    }
+
+    .answer {
+      display: none;
+      border: 1px solid var(--green);
+      background: var(--green-2);
+      padding: 12px;
+      margin-top: 10px;
+    }
+
+    .answer.show { display: block; }
+
+    .source-footer {
+      padding: 32px 0 44px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .source-footer a { color: var(--blue); }
+
+    @media (max-width: 1050px) {
+      .hero-grid,
+      .component-header,
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .robot-stage,
+      .exploded-board {
+        min-height: auto;
+        position: static;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar-inner,
+      .stage-title {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .learning-strip,
+      .focus-grid,
+      .section-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .module.wide { grid-column: auto; }
+
+      .cost-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="shell topbar-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span>Humanoid Learning Workbench</span>
+      </div>
+      <nav class="nav" aria-label="主导航">
+        <button data-scroll="#home">整机地图</button>
+        <button data-scroll="#component-page">零部件页</button>
+        <button data-scroll="#evidence-anchor">证据与来源</button>
+      </nav>
+    </div>
+  </div>
+
+  <main id="home" class="hero shell">
+    <section class="hero-grid" aria-label="人形机器人学习首页">
+      <div class="robot-stage">
+        <div class="stage-title">
+          <div>
+            <div class="eyebrow">Interactive robot map</div>
+            <h1>从整机进入工程判断</h1>
+            <p class="muted">点击机器人核心零部件，进入爆破图、BOM、原理、供应链、成本与业界选型。目标不是背资料，而是训练工程约束意识。</p>
+          </div>
+        </div>
+
+        <div class="robot-wrap">
+          <svg class="robot-svg" viewBox="0 0 360 640" role="img" aria-label="可点击人形机器人结构图">
+            <g data-component="head" class="robot-part">
+              <rect x="134" y="18" width="92" height="72" rx="8" class="robot-core"></rect>
+              <circle cx="162" cy="52" r="7" fill="#202827"></circle>
+              <circle cx="198" cy="52" r="7" fill="#202827"></circle>
+              <path d="M155 74 L205 74" stroke="#202827" stroke-width="3"></path>
+            </g>
+            <g data-component="torso" class="robot-part">
+              <path d="M120 118 L240 118 L268 288 L92 288 Z" class="robot-core"></path>
+              <rect x="145" y="144" width="70" height="88" rx="6" fill="#f4f0e8" stroke="#202827" stroke-width="2"></rect>
+              <path d="M145 178 H215 M145 206 H215" stroke="#8f938b" stroke-width="2"></path>
+            </g>
+            <g data-component="hip" class="robot-part">
+              <rect x="101" y="292" width="158" height="52" rx="8" class="robot-joint"></rect>
+              <circle cx="132" cy="318" r="18" fill="#f4f0e8" stroke="#202827" stroke-width="2"></circle>
+              <circle cx="228" cy="318" r="18" fill="#f4f0e8" stroke="#202827" stroke-width="2"></circle>
+            </g>
+            <g data-component="knee" class="robot-part">
+              <path d="M119 344 L155 344 L148 472 L108 472 Z" class="robot-link"></path>
+              <path d="M205 344 L241 344 L252 472 L212 472 Z" class="robot-link"></path>
+              <circle cx="128" cy="474" r="18" class="robot-joint"></circle>
+              <circle cx="232" cy="474" r="18" class="robot-joint"></circle>
+            </g>
+            <g data-component="ankle" class="robot-part">
+              <path d="M108 492 L150 492 L148 570 L102 570 Z" class="robot-link"></path>
+              <path d="M212 492 L254 492 L258 570 L212 570 Z" class="robot-link"></path>
+              <rect x="82" y="572" width="84" height="34" rx="8" class="robot-joint"></rect>
+              <rect x="194" y="572" width="84" height="34" rx="8" class="robot-joint"></rect>
+            </g>
+            <g data-component="hand" class="robot-part">
+              <path d="M91 132 L42 238" stroke="#202827" stroke-width="24" stroke-linecap="round"></path>
+              <path d="M269 132 L318 238" stroke="#202827" stroke-width="24" stroke-linecap="round"></path>
+              <circle cx="42" cy="244" r="22" class="robot-joint"></circle>
+              <circle cx="318" cy="244" r="22" class="robot-joint"></circle>
+              <path d="M23 263 L12 291 M38 267 L35 298 M54 265 L64 294" stroke="#202827" stroke-width="6" stroke-linecap="round"></path>
+              <path d="M337 263 L348 291 M322 267 L325 298 M306 265 L296 294" stroke="#202827" stroke-width="6" stroke-linecap="round"></path>
+            </g>
+            <g data-component="head" class="robot-part">
+              <rect x="250" y="40" width="74" height="48" rx="6" fill="#dfeadd" stroke="#202827" stroke-width="2"></rect>
+              <path d="M260 64 H314 M287 50 V78" stroke="#37664e" stroke-width="3"></path>
+              <path d="M244 64 L226 58 M244 74 L224 84" stroke="#202827" stroke-width="2"></path>
+            </g>
+          </svg>
+        </div>
+
+        <div class="legend-row" id="componentButtons"></div>
+      </div>
+
+      <aside class="intro-panel">
+        <div class="statement">
+          <div class="eyebrow">Learning objective</div>
+          <h2>把“零件认知”升级成“系统选型能力”</h2>
+          <p>每个零部件页面都按同一套工程路径组织：爆破图、BOM、原理矢量图、难点、供应链、选型案例、成本结构、新闻证据和训练题。</p>
+        </div>
+
+        <div class="learning-strip">
+          <div class="level"><strong>初级</strong><span class="muted">知道部件是什么、装在哪里、为什么需要它。</span></div>
+          <div class="level"><strong>中级</strong><span class="muted">理解力矩、速度、刚度、热、寿命、成本之间的约束。</span></div>
+          <div class="level"><strong>高级</strong><span class="muted">能根据任务需求做选型、识别风险、设计验证测试。</span></div>
+        </div>
+
+        <div class="focus-card">
+          <div class="eyebrow">Selected component</div>
+          <h2 id="focusName">髋关节模组</h2>
+          <p id="focusSummary">髋关节是下肢载荷、步态姿态和整机动态平衡的核心节点。</p>
+          <div class="focus-grid" id="focusMetrics"></div>
+          <button class="primary-button" id="openComponent">进入爆破学习</button>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <section id="component-page" class="component-page">
+    <div class="shell">
+      <div class="component-header">
+        <div>
+          <div class="eyebrow">Component page</div>
+          <h2 id="componentTitle">髋关节模组</h2>
+          <p id="componentLead" class="muted">把一个零部件做成一页，再通过子页面深入关键技术。</p>
+        </div>
+        <div>
+          <div class="component-tabs" id="componentTabs"></div>
+        </div>
+      </div>
+
+      <div class="sub-tabs" id="subTabs"></div>
+
+      <div class="detail-grid">
+        <aside class="exploded-board">
+          <div class="eyebrow">Exploded / principle vector</div>
+          <h3 id="subTitle">髋关节总成</h3>
+          <div class="diagram-frame" id="diagramFrame"></div>
+          <div class="parts-list" id="partsList"></div>
+        </aside>
+
+        <article class="content-board">
+          <div class="section-grid">
+            <section class="module wide">
+              <h3>技术定位与原理</h3>
+              <p id="principleText"></p>
+              <div id="principleTags"></div>
+            </section>
+
+            <section class="module">
+              <h3>BOM 与材料工艺</h3>
+              <div class="table-wrap">
+                <table id="bomTable"></table>
+              </div>
+            </section>
+
+            <section class="module">
+              <h3>技术难点</h3>
+              <div id="difficultyList"></div>
+            </section>
+
+            <section class="module wide">
+              <h3>供应链地图</h3>
+              <div class="table-wrap">
+                <table id="supplierTable"></table>
+              </div>
+            </section>
+
+            <section class="module wide">
+              <h3>业界选型情况</h3>
+              <div class="table-wrap">
+                <table id="selectionTable"></table>
+              </div>
+            </section>
+
+            <section class="module">
+              <h3>成本压力与驱动因素</h3>
+              <p class="muted">这里展示的是教学用成本压力指数，不是未核报价或真实 BOM 占比。</p>
+              <div class="cost-bars" id="costBars"></div>
+            </section>
+
+            <section class="module">
+              <h3>工程建议</h3>
+              <div id="adviceList"></div>
+            </section>
+
+            <section class="module wide">
+              <h3>新闻与证据流</h3>
+              <div class="evidence-list" id="evidenceList"></div>
+            </section>
+
+            <section class="module wide">
+              <h3>工程训练题</h3>
+              <div class="training" id="trainingBox"></div>
+            </section>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <footer id="evidence-anchor" class="source-footer">
+    <div class="shell">
+      <strong>证据边界：</strong>
+      页面内的供应链与选型信息分为官方确认、新闻/公告、工程推断和待核实。涉及具体供应商、BOM 成本、设计冻结和采购决策时，必须回到官网、公告、数据手册、报价、测试报告或拆解实测。
+      已接入的初始来源包括
+      <a href="https://www.unitree.com/g1/" target="_blank" rel="noreferrer">Unitree G1 官方参数页</a>、
+      <a href="https://www.figure.ai/news/botq" target="_blank" rel="noreferrer">Figure BotQ 官方文章</a>、
+      <a href="https://www.tesla.com/AI" target="_blank" rel="noreferrer">Tesla AI & Robotics</a>、
+      <a href="https://www.wsj.com/business/skf-forms-robotics-jv-with-leaderdrive-in-china-818ab639" target="_blank" rel="noreferrer">SKF + Leaderdrive 合资新闻</a>。
+      Last checked: 2026-07-04.
+    </div>
+  </footer>
+
+  <script>
+    const sources = {
+      unitree: "https://www.unitree.com/g1/",
+      figureBotq: "https://www.figure.ai/news/botq",
+      teslaAI: "https://www.tesla.com/AI",
+      skfLeaderdrive: "https://www.wsj.com/business/skf-forms-robotics-jv-with-leaderdrive-in-china-818ab639"
+    };
+
+    const globalEvidence = [
+      {
+        date: "2026-07-02",
+        source: "WSJ / SKF + Leaderdrive",
+        level: "新闻公告线索",
+        claim: "SKF 与 Leaderdrive 拟成立合资公司，面向人形机器人可动关节的高精度传动组件。",
+        implication: "关节传动供应链正在从通用机器人部件走向人形机器人专用高精度组件。",
+        url: sources.skfLeaderdrive
+      },
+      {
+        date: "2025-03-15",
+        source: "Figure BotQ 官方文章",
+        level: "官方确认",
+        claim: "Figure 表示其核心技术装配重点包括 actuators、hands、batteries、final assembly，并外部采购复杂 piece parts。",
+        implication: "供应链设计要区分核心模块内部集成与外部零件制造，页面不能简单写成全外采。",
+        url: sources.figureBotq
+      },
+      {
+        date: "2026-07-04 checked",
+        source: "Unitree G1 官方参数页",
+        level: "官方确认",
+        claim: "G1 公开参数包括 23~43 个关节电机、工业级交叉滚子轴承、低惯量高速内转子 PMSM、双编码器、局部风冷、深度相机 + 3D LiDAR、价格 from US $13.5K。",
+        implication: "可作为低成本/教育研发型人形机器人的公开选型样本。",
+        url: sources.unitree
+      },
+      {
+        date: "2026-07-04 checked",
+        source: "Tesla AI & Robotics 官方页",
+        level: "官方确认但粒度有限",
+        claim: "Tesla 公开目标是通用双足自主机器人，软件栈覆盖 balance、navigation、perception、interaction。",
+        implication: "可确认系统目标，不能据此反推具体供应商或零件型号。",
+        url: sources.teslaAI
+      }
+    ];
+
+    const diagrams = {
+      joint: `
+        <svg viewBox="0 0 520 360" aria-label="关节模组爆破图">
+          <defs>
+            <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#202827"/></marker>
+          </defs>
+          <rect x="28" y="154" width="70" height="52" rx="6" fill="#d7e8ec" stroke="#202827" stroke-width="2"/>
+          <text x="63" y="185" text-anchor="middle" font-size="13">壳体</text>
+          <circle cx="164" cy="180" r="46" fill="#f4dfc7" stroke="#202827" stroke-width="2"/>
+          <circle cx="164" cy="180" r="22" fill="#fbf8f1" stroke="#202827" stroke-width="2"/>
+          <text x="164" y="246" text-anchor="middle" font-size="13">无框 PMSM</text>
+          <path d="M218 146 h90 v68 h-90 z" fill="#dfeadd" stroke="#202827" stroke-width="2"/>
+          <path d="M234 180 h58 M263 151 v58" stroke="#37664e" stroke-width="4"/>
+          <text x="263" y="246" text-anchor="middle" font-size="13">减速器</text>
+          <circle cx="370" cy="180" r="42" fill="#ece7dc" stroke="#202827" stroke-width="2"/>
+          <circle cx="370" cy="180" r="28" fill="#fbf8f1" stroke="#202827" stroke-width="2"/>
+          <text x="370" y="246" text-anchor="middle" font-size="13">交叉滚子轴承</text>
+          <rect x="438" y="160" width="54" height="40" rx="4" fill="#efd7d3" stroke="#202827" stroke-width="2"/>
+          <text x="465" y="246" text-anchor="middle" font-size="13">双编码器</text>
+          <path d="M98 180 H118" stroke="#202827" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M210 180 H218" stroke="#202827" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M308 180 H328" stroke="#202827" stroke-width="2" marker-end="url(#arrow)"/>
+          <path d="M412 180 H438" stroke="#202827" stroke-width="2" marker-end="url(#arrow)"/>
+          <text x="260" y="62" text-anchor="middle" font-size="18" font-weight="700">力矩路径：电磁转矩 → 减速/支撑 → 输出</text>
+          <path d="M96 104 C170 72, 348 72, 428 104" fill="none" stroke="#b76524" stroke-width="3" marker-end="url(#arrow)"/>
+          <text x="260" y="104" text-anchor="middle" font-size="13" fill="#b76524">热路径与装配公差同样决定寿命</text>
+        </svg>`,
+      motor: `
+        <svg viewBox="0 0 520 360" aria-label="PMSM 电机原理图">
+          <circle cx="260" cy="178" r="118" fill="#fbf8f1" stroke="#202827" stroke-width="2"/>
+          <circle cx="260" cy="178" r="62" fill="#d7e8ec" stroke="#202827" stroke-width="2"/>
+          <circle cx="260" cy="178" r="18" fill="#202827"/>
+          <g fill="#f4dfc7" stroke="#202827" stroke-width="2">
+            <path d="M250 56 h20 l12 48 h-44z"/>
+            <path d="M250 252 h20 l12 48 h-44z"/>
+            <path d="M138 168 v20 l-48 12 v-44z"/>
+            <path d="M382 168 v20 l48 12 v-44z"/>
+          </g>
+          <g fill="#9d3f37">
+            <path d="M240 152 h40 v52 h-40z"/>
+            <path d="M260 152 h20 v52 h-20z" fill="#275d75"/>
+          </g>
+          <path d="M312 178 C336 154, 336 202, 312 178" fill="none" stroke="#b76524" stroke-width="4"/>
+          <text x="260" y="32" text-anchor="middle" font-size="18" font-weight="700">PMSM：iq 电流与磁链产生电磁转矩</text>
+          <text x="260" y="330" text-anchor="middle" font-size="13">关键约束：热路径、齿槽转矩、转子惯量、编码器相位</text>
+        </svg>`,
+      reducer: `
+        <svg viewBox="0 0 520 360" aria-label="减速器原理图">
+          <circle cx="250" cy="180" r="118" fill="#ece7dc" stroke="#202827" stroke-width="2"/>
+          <circle cx="250" cy="180" r="76" fill="#fbf8f1" stroke="#202827" stroke-width="2"/>
+          <circle cx="250" cy="180" r="34" fill="#f4dfc7" stroke="#202827" stroke-width="2"/>
+          <g fill="#d7e8ec" stroke="#202827" stroke-width="2">
+            <circle cx="250" cy="102" r="22"/>
+            <circle cx="318" cy="218" r="22"/>
+            <circle cx="182" cy="218" r="22"/>
+          </g>
+          <path d="M86 180 H132 M368 180 H434" stroke="#202827" stroke-width="3"/>
+          <path d="M118 154 L86 180 L118 206" fill="none" stroke="#202827" stroke-width="3"/>
+          <path d="M402 154 L434 180 L402 206" fill="none" stroke="#202827" stroke-width="3"/>
+          <text x="250" y="42" text-anchor="middle" font-size="18" font-weight="700">减速器：速度换力矩，同时引入回差/柔性/损耗</text>
+          <text x="250" y="326" text-anchor="middle" font-size="13">选型看综合包络：效率、刚度、寿命、噪声、加工一致性</text>
+        </svg>`,
+      screw: `
+        <svg viewBox="0 0 520 360" aria-label="丝杠传动原理图">
+          <rect x="84" y="152" width="280" height="56" rx="8" fill="#d7e8ec" stroke="#202827" stroke-width="2"/>
+          <path d="M104 202 C134 142, 164 218, 194 158 S254 218, 284 158 S344 218, 374 158" fill="none" stroke="#b76524" stroke-width="5"/>
+          <rect x="250" y="126" width="80" height="108" rx="6" fill="#f4dfc7" stroke="#202827" stroke-width="2"/>
+          <path d="M368 180 H446" stroke="#202827" stroke-width="4"/>
+          <path d="M416 150 L446 180 L416 210" fill="none" stroke="#202827" stroke-width="4"/>
+          <text x="260" y="58" text-anchor="middle" font-size="18" font-weight="700">丝杠：旋转运动转换为直线推力</text>
+          <text x="260" y="302" text-anchor="middle" font-size="13">T = F·p / (2π·η)，导程、效率、预紧和寿命一起校核</text>
+        </svg>`,
+      sensing: `
+        <svg viewBox="0 0 520 360" aria-label="传感闭环原理图">
+          <rect x="54" y="136" width="106" height="80" rx="6" fill="#d7e8ec" stroke="#202827" stroke-width="2"/>
+          <text x="107" y="181" text-anchor="middle" font-size="14">传感器</text>
+          <rect x="210" y="136" width="106" height="80" rx="6" fill="#f4dfc7" stroke="#202827" stroke-width="2"/>
+          <text x="263" y="181" text-anchor="middle" font-size="14">估计器</text>
+          <rect x="366" y="136" width="106" height="80" rx="6" fill="#dfeadd" stroke="#202827" stroke-width="2"/>
+          <text x="419" y="181" text-anchor="middle" font-size="14">控制器</text>
+          <path d="M160 176 H210 M316 176 H366" stroke="#202827" stroke-width="3"/>
+          <path d="M418 216 C380 282, 136 282, 106 216" fill="none" stroke="#b76524" stroke-width="3"/>
+          <text x="260" y="58" text-anchor="middle" font-size="18" font-weight="700">闭环上限由精度、噪声、延迟、同步决定</text>
+          <text x="260" y="324" text-anchor="middle" font-size="13">没有可信时间戳的传感器，可能比不用更糟</text>
+        </svg>`,
+      thermal: `
+        <svg viewBox="0 0 520 360" aria-label="热路径原理图">
+          <circle cx="140" cy="180" r="52" fill="#efd7d3" stroke="#202827" stroke-width="2"/>
+          <text x="140" y="184" text-anchor="middle" font-size="14">铜损/铁损</text>
+          <rect x="236" y="138" width="98" height="84" rx="6" fill="#f4dfc7" stroke="#202827" stroke-width="2"/>
+          <text x="285" y="184" text-anchor="middle" font-size="14">壳体</text>
+          <path d="M362 122 h86 v116 h-86z" fill="#d7e8ec" stroke="#202827" stroke-width="2"/>
+          <path d="M376 132 v96 M392 132 v96 M408 132 v96 M424 132 v96" stroke="#275d75" stroke-width="3"/>
+          <text x="405" y="260" text-anchor="middle" font-size="14">散热面</text>
+          <path d="M192 180 H236 M334 180 H362" stroke="#202827" stroke-width="4"/>
+          <text x="260" y="56" text-anchor="middle" font-size="18" font-weight="700">热设计：损耗最终都变成温升和降额</text>
+          <text x="260" y="318" text-anchor="middle" font-size="13">连续力矩首先是热问题，不是峰值电流问题</text>
+        </svg>`
+    };
+
+    function tag(text, kind) {
+      return `<span class="tag ${kind || ""}">${text}</span>`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function evidenceClass(level) {
+      if (level.includes("官方")) return "confirmed";
+      if (level.includes("新闻") || level.includes("公告")) return "source";
+      if (level.includes("有限") || level.includes("推断")) return "inferred";
+      if (level.includes("待核实") || level.includes("传闻")) return "unverified";
+      return "source";
+    }
+
+    function partDetail(sub, part, index) {
+      const bom = sub.bom[index % sub.bom.length] || ["待补 BOM", "待补材料", "待补工艺", "待补指标", ""];
+      const supplier = sub.suppliers[index % sub.suppliers.length] || ["待补供应商", "待补方案", "待补信号", "待补风险"];
+      const difficulty = sub.difficulties[index % sub.difficulties.length] || "待补风险点。";
+      return {
+        material: bom[1],
+        process: bom[2],
+        indicator: bom[3],
+        supplier: `${supplier[0]}：${supplier[1]}`,
+        risk: difficulty,
+        test: `建议验证 ${bom[3]}，并同步检查 ${supplier[2]}。`
+      };
+    }
+
+    function rows(headers, data) {
+      const head = `<tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr>`;
+      const body = data.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>`).join("");
+      return head + body;
+    }
+
+    function makeSub(options) {
+      const baseEvidence = options.evidence || globalEvidence.slice(0, 3);
+      return {
+        title: options.title,
+        diagram: options.diagram || "joint",
+        parts: options.parts || ["执行器", "传动件", "支撑轴承", "编码器", "结构壳体", "线束/密封"],
+        principle: options.principle,
+        tags: options.tags || ["力矩-速度包络", "热极限", "刚度/回差", "寿命验证"],
+        bom: options.bom,
+        difficulties: options.difficulties,
+        suppliers: options.suppliers,
+        selections: options.selections,
+        costs: options.costs,
+        advice: options.advice,
+        evidence: baseEvidence,
+        training: options.training
+      };
+    }
+
+    const commonSelections = [
+      ["Unitree G1", tag("官方确认", "confirmed"), "公开采用低惯量高速内转子 PMSM、工业级交叉滚子轴承、双编码器、局部风冷；G1 起价 US $13.5K。", "适合教学/研发页作为公开参数样本，但不能推导具体供应商。", `<a href="${sources.unitree}" target="_blank" rel="noreferrer">Unitree G1</a>`],
+      ["Figure BotQ", tag("官方确认", "confirmed"), "Figure 表示核心技术装配偏内部集成，重点包括 actuators、hands、batteries、final assembly；外部供应商承担复杂 piece parts。", "适合解释量产阶段从 CNC 原型向注塑、压铸、MIM、冲压转移。", `<a href="${sources.figureBotq}" target="_blank" rel="noreferrer">Figure BotQ</a>`],
+      ["Tesla Optimus", tag("粒度有限", "inferred"), "官方确认双足机器人方向和软件栈目标，但未在官网披露具体关节供应商。", "页面只能写系统目标，不能写死供应商。", `<a href="${sources.teslaAI}" target="_blank" rel="noreferrer">Tesla AI</a>`]
+    ];
+
+    const components = [
+      {
+        id: "hip",
+        name: "髋关节模组",
+        summary: "下肢大负载、多自由度姿态控制核心。决定步态能力、负重、热稳定和整机运动上限。",
+        lead: "髋关节是人形机器人最值得先做完整样板的零部件：它同时牵扯高峰值力矩、连续热、减速器刚度、轴承倾覆力矩、装配同轴度和成本。",
+        metrics: [["核心任务", "支撑/摆腿/姿态调节"], ["关键约束", "力矩、刚度、热、回差"], ["学习重点", "电机-减速器-轴承-编码器链条"], ["工程产出", "选型表 + 验证方案"]],
+        subpages: [
+          makeSub({
+            title: "髋关节总成",
+            diagram: "joint",
+            principle: "髋关节把躯干与大腿连接起来，通常需要 Pitch/Roll/Yaw 多轴组合。工程上不能只看峰值力矩，要同时看连续热能力、倾覆刚度、回差、摩擦和线束可维护性。",
+            parts: ["外壳/承力框架", "无框 PMSM", "减速器", "交叉滚子轴承", "双编码器", "制动/限位", "线束密封"],
+            bom: [
+              ["结构壳体", "7075/6061 铝合金或压铸铝", "CNC 原型；量产考虑压铸/MIM/冲压组合", "同轴度、刚度、热路径", tag("中-高", "inferred")],
+              ["电机", "硅钢片、铜线、NdFeB 磁钢", "冲片、绕线、灌封、动平衡", "Kt、热阻、齿槽转矩", tag("高", "inferred")],
+              ["传动", "合金钢/柔轮材料", "齿形加工、热处理、磨削/装配", "回差、效率、疲劳寿命", tag("高", "inferred")],
+              ["轴承", "轴承钢", "精密磨削、预紧、洁净装配", "倾覆刚度、寿命、摩擦", tag("中", "inferred")]
+            ],
+            difficulties: ["高负载下保持低回差和高刚度。", "连续工作温升限制常比峰值电流更早成为瓶颈。", "多轴髋关节线束绕行和密封容易影响寿命。", "减速器柔性会直接吃掉控制带宽。"],
+            suppliers: [
+              ["电机", "无框 PMSM / 内转子高速 PMSM", "Kt、峰值/连续电流、热阻、转子惯量、磁钢等级", "退磁、绕线一致性、温升"],
+              ["减速器", "谐波、行星、摆线/RV、复合传动", "回差、扭转刚度、效率、寿命、噪声", "柔轮疲劳、齿面磨损、润滑"],
+              ["轴承", "交叉滚子、角接触轴承组", "倾覆力矩、预紧、摩擦、游隙", "预紧漂移、污染、装配变形"],
+              ["结构件", "CNC/压铸/MIM/冲压", "尺寸能力、Cpk、表面处理、热路径", "原型工艺不可直接量产"]
+            ],
+            selections: commonSelections,
+            costs: [["电机与磁钢", 82, "高等级磁钢、铜线、绕线/灌封和热设计驱动成本"], ["减速器", 88, "高精度齿形、柔轮/齿轮材料和寿命测试成本高"], ["轴承支撑", 54, "交叉滚子轴承和预紧装配影响成本"], ["结构件", 62, "原型 CNC 高，量产可通过压铸/MIM/冲压下降"], ["测试/良率", 68, "回差、刚度、温升、噪声和寿命筛选会产生隐性成本"]],
+            advice: ["先用任务载荷谱反推峰值/连续力矩，不要从供应商最大参数倒推需求。", "若目标是低成本教育平台，优先关注可采购、可维护、可测试；若目标是工业量产，优先把工艺从 CNC 原型切到可模具化工艺。", "供应商评估时必须索要回差、刚度、热测试、寿命和失效分析数据。"],
+            training: {
+              question: "如果髋关节峰值力矩够，但连续走 20 分钟后温升过高，最优先查什么？",
+              choices: ["只把减速比提高", "连续力矩热模型、散热路径和 duty cycle", "把控制增益降低到不发热", "直接换更贵编码器"],
+              answer: "优先查连续热模型。峰值力矩够不代表连续能力够；铜损、铁损、减速器摩擦和散热路径会决定降额。提高减速比可能降低电机力矩但增加速度/摩擦/反驱问题，不能单独处理。"
+            }
+          }),
+          makeSub({
+            title: "无框力矩电机",
+            diagram: "motor",
+            principle: "电机把电流转换成电磁转矩，是关节功率和热的源头。机器人关节常关注低惯量、高响应、热通道和编码器集成，而不是只看最大转矩。",
+            parts: ["定子铁芯", "绕组", "转子磁钢", "霍尔/编码器接口", "灌封", "热界面"],
+            bom: [
+              ["定子", "硅钢片 + 铜线", "冲片、叠压、绕线", "铁损、铜损、槽满率", tag("高", "inferred")],
+              ["转子", "合金钢背铁 + NdFeB", "磁钢粘接、动平衡", "转子惯量、退磁裕度", tag("高", "inferred")],
+              ["热界面", "导热胶/灌封材料", "灌封、固化、贴合", "热阻、可靠性", tag("中", "inferred")]
+            ],
+            difficulties: ["低齿槽转矩和高扭矩密度常互相牵制。", "灌封提升热路径但增加返修难度。", "编码器相位和电角度错误会导致低速力控异常。"],
+            suppliers: [
+              ["电机本体", "无框 PMSM / 内转子高速 PMSM", "Kt、Ke、R、L、热阻、齿槽转矩", "批次一致性、退磁、绕组短路"],
+              ["磁钢", "烧结 NdFeB", "牌号、温度系数、镀层", "退磁、腐蚀、粘接"],
+              ["绕线/灌封", "自动绕线、真空灌封", "良率、局放、绝缘等级", "热循环开裂"]
+            ],
+            selections: commonSelections,
+            costs: [["磁钢", 75, "高性能 NdFeB 与温度裕度驱动成本"], ["铜线/绕线", 66, "槽满率、自动化程度和良率敏感"], ["定转子加工", 58, "冲片模具、叠压、动平衡"], ["热设计", 48, "导热材料和装配一致性"], ["测试", 52, "反电动势、绝缘、温升、噪声筛选"]],
+            advice: ["样机阶段要测 torque constant、反电动势、相电阻、温升曲线，不要只收供应商规格书。", "低速力控场景必须把编码器精度、相位、FOC 电流采样一起看。", "连续力矩要按环境温度和壳体散热条件重测。"],
+            training: {
+              question: "电机供应商给了很高峰值转矩，为什么仍不能直接用于髋关节选型？",
+              choices: ["峰值参数没有任何意义", "还要确认持续时间、电压电流、热路径、转速和退磁裕度", "只要减速器足够大就没问题", "编码器分辨率越高越能补偿"],
+              answer: "峰值转矩必须和持续时间、电流、电压、温度、退磁裕度和转速一起看。关节真实能力是力矩-速度-热的包络，不是一个峰值数字。"
+            }
+          }),
+          makeSub({
+            title: "减速器/传动",
+            diagram: "reducer",
+            principle: "减速器用速度换输出力矩，同时引入效率损耗、回差、摩擦和柔性。高减速比不是免费午餐，它会改变反驱性、控制带宽和热。",
+            parts: ["输入轴", "齿轮/柔轮", "输出法兰", "支撑轴承", "润滑", "密封"],
+            bom: [
+              ["谐波/柔轮", "专用合金钢", "成形、热处理、齿形加工", "疲劳寿命、扭转刚度", tag("高", "inferred")],
+              ["行星齿轮", "20CrMnTi/42CrMo 类合金钢", "滚齿/磨齿/修形/热处理", "接触斑、噪声、回差", tag("中-高", "inferred")],
+              ["润滑", "润滑脂/油封", "定量加注、密封", "效率、寿命、温升", tag("中", "inferred")]
+            ],
+            difficulties: ["回差小、效率高、刚度高、寿命长很难同时满足。", "齿轮接触和润滑质量会变成噪声和寿命问题。", "柔性会降低外环控制带宽，表现为动作软或振荡。"],
+            suppliers: [
+              ["谐波减速器", "高比、紧凑", "空程、传动精度、扭转刚度、寿命", "柔轮疲劳和一致性"],
+              ["行星/摆线", "中高比、冲击能力", "齿面热处理、噪声、效率", "回差和体积"],
+              ["高精传动组件", "人形关节专用传动", "产业化能力、失效分析", "供应链尚不成熟"]
+            ],
+            selections: [
+              ...commonSelections,
+              ["SKF + Leaderdrive", tag("新闻线索", "source"), "报道称双方合资面向人形机器人可动关节高精度传动组件。", "适合作为供应链趋势证据，不等于某整机已经采用。", `<a href="${sources.skfLeaderdrive}" target="_blank" rel="noreferrer">WSJ</a>`]
+            ],
+            costs: [["齿形加工", 86, "磨齿/修形/柔轮齿形精度成本高"], ["材料与热处理", 62, "疲劳和冲击载荷要求提升材料成本"], ["装配预紧", 58, "回差和噪声依赖装配"], ["润滑密封", 34, "影响寿命和维护"], ["寿命测试", 70, "长周期测试占用设备和时间"]],
+            advice: ["不要用空载回差替代负载刚度测试。", "减速比选择要同时校核 motor speed、reflected inertia、效率和热。", "要把润滑加注量、温度和寿命作为供应商审核项。"],
+            evidence: [globalEvidence[0], globalEvidence[1], globalEvidence[2]],
+            training: {
+              question: "提高减速比能解决所有髋关节力矩问题吗？",
+              choices: ["能，减速比越高越好", "不能，它会改变速度、效率、反驱性、惯量和带宽", "只影响成本，不影响控制", "只影响编码器分辨率"],
+              answer: "不能。输出力矩增加的同时，输出速度下降，摩擦和效率损失可能增加，反驱性下降，柔性和回差也会影响控制带宽。"
+            }
+          }),
+          makeSub({
+            title: "轴承支撑",
+            diagram: "joint",
+            principle: "轴承不是简单支撑旋转，它决定倾覆刚度、轴向/径向承载、摩擦和装配一致性。髋关节尤其要关注多方向载荷和冲击。",
+            parts: ["交叉滚子轴承", "角接触轴承组", "输出法兰", "预紧结构", "密封"],
+            bom: [
+              ["交叉滚子轴承", "轴承钢", "精密磨削、热处理", "倾覆力矩、游隙、摩擦", tag("中", "inferred")],
+              ["预紧件", "合金钢/铝合金", "磨削、CNC", "刚度、装配稳定", tag("中", "inferred")],
+              ["密封件", "橡胶/工程塑料", "模压", "污染控制、寿命", tag("低-中", "inferred")]
+            ],
+            difficulties: ["预紧过大导致摩擦和发热，过小导致刚度和回差不足。", "壳体变形会改变轴承实际游隙。", "污染和润滑失效会加速磨损。"],
+            suppliers: [
+              ["轴承供应商", "交叉滚子/薄壁轴承", "游隙、预紧、寿命、洁净度", "假精度、批次漂移"],
+              ["加工供应商", "壳体/法兰", "同轴度、端跳、平面度", "装配后变形"],
+              ["测试设备", "刚度/回差/摩擦测试", "加载能力、传感精度", "设备精度不够"]
+            ],
+            selections: commonSelections,
+            costs: [["精密轴承", 68, "精度等级和尺寸越薄越贵"], ["装配与预紧", 55, "人工/工装/一致性影响成本"], ["壳体精度", 58, "同轴度和平面度依赖加工"], ["测试", 42, "倾覆刚度和摩擦测试"], ["售后风险", 48, "污染、冲击和润滑失效"]],
+            advice: ["轴承选型要和壳体刚度一起仿真/测试，不能孤立看轴承目录。", "首件必须测端跳、径跳、摩擦矩和倾覆刚度。", "供应商审核要看洁净装配和失效分析能力。"],
+            training: {
+              question: "为什么同一个轴承装进不同壳体后刚度表现可能完全不同？",
+              choices: ["轴承数据手册不可信", "壳体刚度、同轴度、预紧和装配变形改变了实际工作状态", "编码器读数不同", "润滑脂颜色不同"],
+              answer: "轴承工作状态由轴承、壳体、预紧、同轴度和载荷路径共同决定。壳体变形会改变游隙和接触状态。"
+            }
+          }),
+          makeSub({
+            title: "编码器与力矩传感",
+            diagram: "sensing",
+            principle: "传感链决定控制性能上限。髋关节常需要电机侧和输出侧位置反馈，力矩传感则支持碰撞检测、力控和模型校正。",
+            parts: ["电机侧编码器", "输出侧编码器", "力矩传感器", "温度传感器", "时间同步"],
+            bom: [
+              ["编码器", "磁/光/感应式", "码盘/磁环装配、标定", "精度、延迟、偏心", tag("中", "inferred")],
+              ["力矩传感", "应变片/弹性体", "贴片、标定、温补", "迟滞、交叉耦合", tag("中-高", "inferred")],
+              ["温度传感", "NTC/数字温度", "贴装、灌封", "响应时间、位置", tag("低", "inferred")]
+            ],
+            difficulties: ["分辨率不等于精度，高分辨率编码器也可能有安装偏心误差。", "输出侧编码器能看见减速器回差，但成本和空间增加。", "时间戳不同步会污染状态估计。"],
+            suppliers: [
+              ["编码器", "磁/光/感应绝对值", "精度、延迟、更新率、接口", "偏心、温漂、抗干扰"],
+              ["力矩传感器", "应变式/集成式", "量程、刚度、迟滞、温漂", "过载和标定漂移"],
+              ["通信", "EtherCAT/CAN-FD/内部总线", "周期、抖动、时间戳", "掉帧和相位裕度"]
+            ],
+            selections: commonSelections,
+            costs: [["高精编码器", 62, "绝对精度、接口和环境适应性"], ["力矩传感", 72, "弹性体设计、贴片和标定成本"], ["线束/接口", 38, "高动态弯折和屏蔽"], ["标定", 54, "矩阵标定与温补"], ["EMC/可靠性", 46, "抗干扰和寿命验证"]],
+            advice: ["关键闭环要记录 reference/state/command/current/temperature/timestamp。", "输出侧编码器适合高精位置和回差观测，但要评估成本和空间。", "力矩传感器必须看刚度与过载，不是只看量程。"],
+            training: {
+              question: "为什么双编码器对关节控制有价值？",
+              choices: ["可以让电机转得更快", "可以区分电机侧运动和输出侧回差/柔性", "可以完全替代力矩传感器", "可以消除所有延迟"],
+              answer: "双编码器能同时观察电机侧和输出侧状态，从而暴露减速器回差、柔性和传动误差，但不能替代力矩传感器，也不能消除延迟。"
+            }
+          }),
+          makeSub({
+            title: "热设计与测试",
+            diagram: "thermal",
+            principle: "连续力矩本质是热问题。电机铜损/铁损、减速器摩擦、轴承摩擦和驱动损耗都会变成温升，最终触发降额或寿命问题。",
+            parts: ["绕组热源", "减速器摩擦热", "壳体热通道", "散热片/风道", "温度传感器", "耐久测试"],
+            bom: [
+              ["热界面", "导热垫/导热胶", "贴合、压紧、固化", "热阻、老化", tag("中", "inferred")],
+              ["壳体散热", "铝合金/压铸铝", "CNC/压铸/表面处理", "热扩散、结构刚度", tag("中", "inferred")],
+              ["测试设备", "测功机/热箱/红外", "加载和采样", "不确定度、工况复现", tag("中", "inferred")]
+            ],
+            difficulties: ["壳体温度低不代表绕组温度低。", "短时峰值测试不能证明连续性能。", "机器人关节实际 duty cycle 与台架恒载不同。"],
+            suppliers: [
+              ["热材料", "导热胶/垫/灌封", "导热率、压缩率、老化", "泵出、开裂、返修"],
+              ["测试台架", "力矩-转速/温升/寿命", "加载能力、传感精度、采样", "工况不等价"],
+              ["风冷/散热", "局部风冷、热管、壳体散热", "噪声、重量、可靠性", "灰尘和维护"]
+            ],
+            selections: commonSelections,
+            costs: [["热材料", 32, "材料本身不高，但返修和可靠性重要"], ["散热结构", 50, "壳体形状和风道增加复杂度"], ["温升测试", 70, "长时间占用台架"], ["热降额策略", 42, "软件和标定成本"], ["可靠性", 76, "热循环和寿命测试成本高"]],
+            advice: ["每个关节必须有峰值、连续、RMS duty cycle 三种视角。", "建立绕组温度估计模型，不只看外壳温度。", "量产前要跑热循环、满载温升、油脂老化和回差增长。"],
+            training: {
+              question: "为什么供应商给出的连续力矩需要重新验证？",
+              choices: ["供应商一定造假", "连续力矩取决于安装散热条件、环境温度和 duty cycle", "连续力矩只由编码器决定", "只需要测试 30 秒"],
+              answer: "连续力矩通常是在特定散热和环境条件下定义的。机器人实际壳体、气流、占空比和环境温度不同，必须重测。"
+            }
+          })
+        ]
+      },
+      {
+        id: "knee",
+        name: "膝关节模组",
+        summary: "承担大力矩伸屈、冲击吸收和支撑相稳定，是下肢功率和安全保护关键。",
+        lead: "膝关节的工程核心是峰值力矩、冲击载荷、制动/限位和寿命，子页面关注旋转关节、丝杠连杆、制动保护与耐久测试。",
+        metrics: [["核心任务", "伸屈/支撑/冲击"], ["关键约束", "峰值力矩、寿命、制动"], ["学习重点", "旋转 vs 直线驱动"], ["工程产出", "膝关节载荷谱"]],
+        subpages: [
+          makeSub({
+            title: "旋转膝关节",
+            diagram: "joint",
+            principle: "旋转膝关节结构紧凑、控制直接，但要承受步态中的高峰值力矩和冲击。选型必须把膝角速度、峰值功率、回差和热放在同一张表里。",
+            parts: ["电机", "减速器", "输出轴承", "编码器", "机械限位"],
+            bom: [["电机", "PMSM", "绕线/灌封", "峰值功率、热", tag("高")], ["减速器", "谐波/行星", "齿形加工/热处理", "回差、寿命", tag("高")], ["限位", "钢/缓冲材料", "CNC/模压", "冲击吸收", tag("中")]],
+            difficulties: ["落地冲击会导致瞬时过载。", "膝关节常是整机最大力矩点之一。", "限位设计不当会损坏减速器。"],
+            suppliers: [["执行器", "旋转关节模组", "峰值/连续力矩、速度、热", "过载和寿命"], ["制动器", "常闭制动/安全锁止", "保持力矩、响应时间", "发热和失效模式"], ["缓冲件", "弹性体/机械限位", "能量吸收", "老化"]],
+            selections: commonSelections,
+            costs: [["执行器", 82, "大力矩与高功率密度"], ["制动/限位", 38, "安全要求驱动"], ["测试", 72, "冲击和寿命验证"], ["结构件", 48, "承力件加工"], ["售后", 58, "跌倒和误用风险"]],
+            advice: ["膝关节必须做冲击载荷和热降额测试。", "不要让硬限位直接把冲击传给减速器齿面。", "制动器要定义失电和跌倒场景。"],
+            training: { question: "膝关节最容易被一个峰值力矩参数误导在哪里？", choices: ["忽略冲击、速度和连续热", "忽略外观", "忽略颜色", "忽略 WiFi"], answer: "峰值力矩不能代表落地冲击、速度、峰值功率、连续热和寿命。膝关节必须用载荷谱和 duty cycle 判断。" }
+          }),
+          makeSub({
+            title: "丝杠/连杆驱动",
+            diagram: "screw",
+            principle: "直线执行器通过丝杠和连杆把旋转转为关节力矩，适合高轴向力密度，但速度、效率、寿命、润滑和反驱性要谨慎校核。",
+            parts: ["电机", "行星滚柱/滚珠丝杠", "推杆", "连杆", "球铰/轴承"],
+            bom: [["丝杠", "轴承钢/合金钢", "螺纹磨削/滚压", "导程、寿命、效率", tag("高")], ["连杆", "铝/钢/复材", "CNC/锻造", "屈曲、疲劳", tag("中")], ["球铰", "轴承钢", "磨削/装配", "间隙、寿命", tag("中")]],
+            difficulties: ["导程越小力越大但速度受限。", "预紧提高刚度但增加摩擦和温升。", "连杆机构力臂随角度变化，力矩不是常数。"],
+            suppliers: [["丝杠", "滚珠/行星滚柱丝杠", "额定动载、静载、效率、DN", "润滑、寿命、反驱"], ["连杆加工", "高强铝/钢", "疲劳、屈曲、重量", "裂纹和装配偏心"], ["密封润滑", "油脂/防尘", "温度、污染", "维护"]],
+            selections: commonSelections,
+            costs: [["丝杠", 80, "高载荷高精密加工"], ["连杆", 42, "强度重量折中"], ["密封润滑", 34, "寿命保障"], ["装配", 50, "同轴度和预紧"], ["寿命测试", 76, "循环载荷验证"]],
+            advice: ["用 T = F·p/(2π·η) 和机构力臂曲线一起算，不要只看丝杠推力。", "明确是滚珠丝杠还是行星滚柱丝杠。", "必须做污染、润滑和冲击后的效率/间隙复测。"],
+            training: { question: "为什么丝杠推力不能直接等于膝关节输出力矩？", choices: ["因为还要乘以随角度变化的机构力臂", "因为电机没有电", "因为编码器不能测力", "因为丝杠不需要效率"], answer: "丝杠推力通过连杆力臂转成关节力矩，力臂随膝角变化；同时还要考虑效率、摩擦和加速度。" }
+          })
+        ]
+      },
+      {
+        id: "ankle",
+        name: "踝关节与足部",
+        summary: "负责地面适应、姿态微调、冲击传递和力控，是摔倒诊断与动态平衡的关键观测点。",
+        lead: "踝关节页面重点训练支撑多边形、足底力传感、Pitch/Roll 双自由度和地面冲击路径的工程判断。",
+        metrics: [["核心任务", "落地/支撑/姿态调整"], ["关键约束", "冲击、密封、刚度"], ["学习重点", "足底传感与双轴踝"], ["工程产出", "地面接触验证"]],
+        subpages: [
+          makeSub({
+            title: "Pitch/Roll 双轴踝",
+            diagram: "joint",
+            principle: "踝关节调节身体姿态和足底接触。Pitch/Roll 需要小体积内实现高刚度、高冲击能力和足够 ROM。",
+            parts: ["Pitch 轴", "Roll 轴", "交叉轴承", "输出法兰", "密封件"],
+            bom: [["双轴结构", "铝/钢", "CNC/压铸", "刚度、干涉", tag("中")], ["减速器", "谐波/行星", "精密加工", "回差、效率", tag("高")], ["密封", "橡胶/工程塑料", "模压", "防尘防水", tag("中")]],
+            difficulties: ["足部空间小但冲击大。", "双轴耦合导致装配和控制复杂。", "密封和散热互相牵制。"],
+            suppliers: [["关节模组", "双轴集成", "体积、刚度、回差", "耦合误差"], ["密封件", "防尘防水", "耐磨、温度", "泥水污染"], ["足底传感", "压力/六维力", "范围、过载、迟滞", "冲击损坏"]],
+            selections: commonSelections,
+            costs: [["双轴机构", 74, "空间受限导致复杂度高"], ["传感器", 52, "足底力/压力阵列"], ["密封", 36, "环境适应"], ["测试", 78, "跌落/冲击/泥水"], ["售后", 64, "足部磨损高"]],
+            advice: ["踝关节一定要和足底接触模型一起看。", "落地冲击要通过结构路径和传感器过载保护消化。", "动态平衡问题要记录 CoP、IMU、关节力矩和足底接触。"],
+            training: { question: "机器人走路时踝关节发热并伴随低频晃动，先看什么？", choices: ["足底接触、力矩饱和、控制输出和温升日志", "只换更硬弹簧", "只增加灯光", "只看外观"], answer: "要联查接触、控制和热。低频晃动可能是平衡/估计/控制，发热则可能来自力矩饱和或摩擦。" }
+          })
+        ]
+      },
+      {
+        id: "hand",
+        name: "灵巧手",
+        summary: "人形机器人的操作终端，技术矛盾集中在自由度、力控、触觉、线束、耐久和成本。",
+        lead: "灵巧手不是越像人手越好，核心是任务覆盖、成本、耐久、可维护和触觉/视觉闭环。",
+        metrics: [["核心任务", "抓取/操作/工具使用"], ["关键约束", "体积、线束、触觉、寿命"], ["学习重点", "腱绳 vs 微型驱动"], ["工程产出", "任务-自由度矩阵"]],
+        subpages: [
+          makeSub({
+            title: "腱绳驱动手",
+            diagram: "screw",
+            principle: "腱绳驱动把电机移到掌部或前臂，手指轻、惯量低，但腱绳摩擦、伸长、磨损和走线耦合是核心难点。",
+            parts: ["手指骨架", "腱绳", "微型电机", "滑轮/导向", "触觉传感"],
+            bom: [["腱绳", "高强纤维/钢丝", "编织/端接", "伸长、磨损", tag("中")], ["手指", "塑料/铝/复材", "注塑/CNC", "重量、刚度", tag("中")], ["触觉", "柔性阵列", "贴合/标定", "灵敏度、寿命", tag("中-高")]],
+            difficulties: ["腱绳摩擦和回差会影响力控。", "小空间内线束和传感器容易失效。", "触觉标定和耐久成本高。"],
+            suppliers: [["微型驱动", "微电机/减速器/丝杠", "寿命、噪声、体积", "热和齿轮寿命"], ["柔性传感", "触觉/压力阵列", "灵敏度、迟滞、耐磨", "标定漂移"], ["注塑结构", "手指外壳", "模具、材料、耐冲击", "裂纹"]],
+            selections: commonSelections,
+            costs: [["微型驱动", 66, "数量多、集成密度高"], ["触觉传感", 76, "柔性传感和标定"], ["腱绳/导向", 42, "磨损与维护"], ["注塑模具", 52, "量产前资本开支"], ["装配", 70, "走线和调张力复杂"]],
+            advice: ["先按任务定义自由度，不要按人手 27 DoF 盲目追求。", "抓取任务要定义物体集合、力范围、速度和寿命。", "触觉传感器要测迟滞、温漂、耐磨和标定稳定。"],
+            training: { question: "灵巧手自由度越多一定越好吗？", choices: ["一定", "不一定，要看任务覆盖、控制复杂度、成本和可靠性", "只影响外观", "只影响颜色"], answer: "不一定。自由度提升会带来驱动、线束、控制、传感和可靠性成本，需要以任务集合来反推。" }
+          })
+        ]
+      },
+      {
+        id: "head",
+        name: "头部感知模组",
+        summary: "承载相机、IMU、深度感知、麦克风和补光，是感知与标定问题的集中区。",
+        lead: "头部感知页面重点训练相机-IMU 标定、时间同步、传感器到连杆外参和头/躯干运动链理解。",
+        metrics: [["核心任务", "视觉/定位/交互"], ["关键约束", "标定、同步、延迟"], ["学习重点", "相机-IMU-躯干 IMU"], ["工程产出", "标定流程"]],
+        subpages: [
+          makeSub({
+            title: "相机-IMU 标定",
+            diagram: "sensing",
+            principle: "相机和 IMU 若用于融合，必须标定相机内参、IMU 噪声/内参、相机-IMU 空间外参和时间偏移。装入头部后还要标定传感器到头部连杆的外参。",
+            parts: ["RGB/深度相机", "IMU", "刚性支架", "时间同步", "头部连杆外参"],
+            bom: [["相机", "镜头/CMOS/外壳", "调焦/标定", "畸变、延迟", tag("中")], ["IMU", "MEMS", "贴装/温补", "噪声、零偏", tag("中")], ["支架", "铝/镁/塑料", "CNC/压铸", "刚性、热漂移", tag("中")]],
+            difficulties: ["体外标定只有在相机和 IMU 保持刚性子组件时有效。", "头部和躯干 IMU 之间若有颈部自由度，不存在固定外参。", "时间戳错误会直接破坏融合。"],
+            suppliers: [["相机模组", "全局/卷帘 RGB、深度", "内参稳定、延迟、接口", "热漂移"], ["IMU", "低噪声/抗振", "零偏、噪声密度、带宽", "振动敏感"], ["标定服务/工装", "Kalibr/自研", "重复性、激励充分", "流程不闭环"]],
+            selections: [
+              ["Unitree G1", tag("官方确认", "confirmed"), "公开采用 Depth Camera + 3D LiDAR、4 麦克风阵列。", "可作为头部/感知公开选型样本。", `<a href="${sources.unitree}" target="_blank" rel="noreferrer">Unitree G1</a>`],
+              ["Tesla Optimus", tag("粒度有限", "inferred"), "官方强调 perception 和 interaction，但不披露具体相机/IMU 供应商。", "不能写死供应商。", `<a href="${sources.teslaAI}" target="_blank" rel="noreferrer">Tesla AI</a>`]
+            ],
+            costs: [["相机/深度", 58, "传感器规格、镜头和标定"], ["IMU", 38, "噪声/抗振等级"], ["支架与装配", 34, "刚性和热漂移"], ["标定", 64, "工装、流程、复测"], ["同步", 46, "硬触发/时间戳链路"]],
+            advice: ["相机+IMU 先做刚性子组件，再体外标定，装机后做一致性校验。", "头部与躯干传感器要通过颈部运动学链关联。", "标定结果必须记录温度、固件、镜头焦距和安装状态。"],
+            training: { question: "头部相机+IMU 体外标定后装入机器人，什么时候有效？", choices: ["永远有效", "只有相机和 IMU 相对位姿未改变且仍为刚性子组件", "只要螺丝拧紧就有效", "只要相机能出图就有效"], answer: "只有相机和 IMU 的相对位姿未被装配应力、拆装或热变形改变时有效；装机后仍应做一致性校验。" }
+          })
+        ]
+      },
+      {
+        id: "torso",
+        name: "躯干/主控与电源",
+        summary: "集中电池、域控、通信、散热和线束，是整机可靠性和可维护性的骨架。",
+        lead: "躯干页面重点训练电源安全、域控算力、通信总线、散热与线束可制造性。",
+        metrics: [["核心任务", "供电/计算/通信"], ["关键约束", "安全、热、EMC、维护"], ["学习重点", "电源与总线"], ["工程产出", "系统框图"]],
+        subpages: [
+          makeSub({
+            title: "域控与电源系统",
+            diagram: "sensing",
+            principle: "躯干是能量和信息中心。电池、BMS、DC/DC、域控制器和实时总线共同决定整机运行时间、控制周期、热和安全。",
+            parts: ["电池包", "BMS", "DC/DC", "域控制器", "通信总线", "散热系统"],
+            bom: [["电池", "锂电芯", "分选、焊接、PACK", "容量、倍率、安全", tag("高")], ["控制器", "SoC/GPU/MCU", "SMT/散热", "算力、实时性", tag("高")], ["线束", "铜线/连接器", "压接、屏蔽、固定", "压降、EMC、弯折", tag("中")]],
+            difficulties: ["算力高意味着热和电源噪声更难处理。", "总线抖动会表现成控制问题。", "电池安全和维护必须在结构设计早期考虑。"],
+            suppliers: [["电池/BMS", "电芯、PACK、保护板", "UN38.3、倍率、热失控", "安全认证"], ["域控", "CPU/GPU/MCU", "算力/W、实时接口", "供货周期"], ["线束连接器", "高柔/屏蔽/锁扣", "压降、EMC、寿命", "接触不良"]],
+            selections: [
+              ["Unitree G1", tag("官方确认", "confirmed"), "13 串锂电、9000 mAh 快拆电池、8 核 CPU、可选 Orin 等高算力模块。", "可用于低成本系统架构样本。", `<a href="${sources.unitree}" target="_blank" rel="noreferrer">Unitree G1</a>`],
+              ["Figure BotQ", tag("官方确认", "confirmed"), "Figure 提到 batteries 和 final assembly 作为内部重点，并建设 MES/PLM/ERP/WMS。", "说明量产需要软件基础设施与追溯。", `<a href="${sources.figureBotq}" target="_blank" rel="noreferrer">Figure BotQ</a>`]
+            ],
+            costs: [["电池包", 72, "电芯、BMS、安全认证"], ["域控算力", 78, "GPU/SoC 和散热"], ["线束连接器", 52, "高柔、屏蔽和装配"], ["散热", 48, "风道/热界面/壳体"], ["测试追溯", 64, "MES、EOL、日志"]],
+            advice: ["先画能量流和信号流，再布置结构。", "实时控制总线与高带宽感知数据要分层。", "整机问题排查要记录电压、电流、温度、总线周期和时间戳。"],
+            training: { question: "为什么通信总线问题可能被误判成控制增益问题？", choices: ["因为总线周期抖动会引入相位延迟和状态误差", "因为电池颜色不对", "因为机器人太高", "因为相机像素太高"], answer: "总线周期抖动、丢帧和时间戳不一致会破坏闭环相位裕度，看起来像控制发散或振荡。" }
+          })
+        ]
+      }
+    ];
+
+    let selectedComponent = components[0];
+    let selectedSubIndex = 0;
+
+    const componentButtons = document.getElementById("componentButtons");
+    const focusName = document.getElementById("focusName");
+    const focusSummary = document.getElementById("focusSummary");
+    const focusMetrics = document.getElementById("focusMetrics");
+    const openComponent = document.getElementById("openComponent");
+    const componentTabs = document.getElementById("componentTabs");
+    const subTabs = document.getElementById("subTabs");
+
+    function setComponent(id, shouldScroll) {
+      selectedComponent = components.find(c => c.id === id) || components[0];
+      selectedSubIndex = 0;
+      renderHomeFocus();
+      renderComponent();
+      document.querySelectorAll("[data-component]").forEach(el => {
+        el.classList.toggle("active", el.dataset.component === selectedComponent.id);
+      });
+      if (shouldScroll) document.querySelector("#component-page").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function renderHomeFocus() {
+      focusName.textContent = selectedComponent.name;
+      focusSummary.textContent = selectedComponent.summary;
+      focusMetrics.innerHTML = selectedComponent.metrics.map(item => `
+        <div class="metric"><b>${item[0]}</b><span>${item[1]}</span></div>
+      `).join("");
+      componentButtons.innerHTML = components.map(component => `
+        <button class="${component.id === selectedComponent.id ? "active" : ""}" data-select="${component.id}">${component.name}</button>
+      `).join("");
+      componentButtons.querySelectorAll("button").forEach(button => {
+        button.addEventListener("click", () => setComponent(button.dataset.select, false));
+      });
+    }
+
+    function renderComponentTabs() {
+      componentTabs.innerHTML = components.map(component => `
+        <button class="${component.id === selectedComponent.id ? "active" : ""}" data-select="${component.id}">${component.name}</button>
+      `).join("");
+      componentTabs.querySelectorAll("button").forEach(button => {
+        button.addEventListener("click", () => setComponent(button.dataset.select, false));
+      });
+    }
+
+    function renderSubTabs() {
+      subTabs.innerHTML = selectedComponent.subpages.map((sub, index) => `
+        <button class="${index === selectedSubIndex ? "active" : ""}" data-sub="${index}">${sub.title}</button>
+      `).join("");
+      subTabs.querySelectorAll("button").forEach(button => {
+        button.addEventListener("click", () => {
+          selectedSubIndex = Number(button.dataset.sub);
+          renderComponent();
+        });
+      });
+    }
+
+    function renderComponent() {
+      const sub = selectedComponent.subpages[selectedSubIndex];
+      document.getElementById("componentTitle").textContent = selectedComponent.name;
+      document.getElementById("componentLead").textContent = selectedComponent.lead;
+      document.getElementById("subTitle").textContent = sub.title;
+      document.getElementById("diagramFrame").innerHTML = diagrams[sub.diagram] || diagrams.joint;
+      document.getElementById("partsList").innerHTML = sub.parts.map((part, index) => {
+        const detail = partDetail(sub, part, index);
+        return `
+          <button class="part-row" type="button" aria-expanded="false" aria-controls="part-detail-${index}" data-part="${index}">
+            <span class="part-index">${String(index + 1).padStart(2, "0")}</span>
+            <span>${escapeHtml(part)}</span>
+            <span class="tag">展开</span>
+          </button>
+          <div class="part-detail" id="part-detail-${index}">
+            <dl>
+              <dt>材料</dt><dd>${escapeHtml(detail.material)}</dd>
+              <dt>工艺</dt><dd>${escapeHtml(detail.process)}</dd>
+              <dt>指标</dt><dd>${escapeHtml(detail.indicator)}</dd>
+              <dt>供应链</dt><dd>${escapeHtml(detail.supplier)}</dd>
+              <dt>风险</dt><dd>${escapeHtml(detail.risk)}</dd>
+              <dt>验证</dt><dd>${escapeHtml(detail.test)}</dd>
+            </dl>
+          </div>
+        `;
+      }).join("");
+      document.getElementById("principleText").textContent = sub.principle;
+      document.getElementById("principleTags").innerHTML = sub.tags.map(text => tag(text, "source")).join("");
+      document.getElementById("bomTable").innerHTML = rows(["子件", "材料", "工艺", "关键指标", "成本等级"], sub.bom);
+      document.getElementById("difficultyList").innerHTML = sub.difficulties.map(item => `<p>${tag("难点", "inferred")}${item}</p>`).join("");
+      document.getElementById("supplierTable").innerHTML = rows(["供应商类别", "可选方案", "选型信号", "风险点"], sub.suppliers);
+      document.getElementById("selectionTable").innerHTML = rows(["对象", "证据等级", "公开/推断选型", "页面可用结论", "来源"], sub.selections);
+      document.getElementById("costBars").innerHTML = sub.costs.map(item => `
+        <div class="cost-row">
+          <strong>${item[0]}</strong>
+          <div class="bar" aria-label="${item[0]} 成本压力指数"><span style="width:${item[1]}%"></span></div>
+          <span>压力 ${item[1]}</span>
+          <p class="muted" style="grid-column:1/-1;margin:0">${item[2]}</p>
+        </div>
+      `).join("");
+      document.getElementById("adviceList").innerHTML = sub.advice.map(item => `<p>${tag("建议", "confirmed")}${item}</p>`).join("");
+      document.getElementById("evidenceList").innerHTML = sub.evidence.map(item => `
+        <div class="evidence">
+          <div>${tag(item.level, evidenceClass(item.level))} <strong>${item.date}</strong> · <a href="${item.url}" target="_blank" rel="noreferrer">${item.source}</a></div>
+          <p>${item.claim}</p>
+          <p class="muted">页面含义：${item.implication}</p>
+        </div>
+      `).join("");
+      document.getElementById("trainingBox").innerHTML = `
+        <p><strong>${sub.training.question}</strong></p>
+        ${sub.training.choices.map((choice, index) => `<button class="choice" data-choice="${index}">${choice}</button>`).join("")}
+        <div class="answer" id="trainingAnswer">${sub.training.answer}</div>
+      `;
+      document.querySelectorAll(".choice").forEach(choice => {
+        choice.addEventListener("click", () => {
+          document.querySelectorAll(".choice").forEach(c => c.classList.remove("selected"));
+          choice.classList.add("selected");
+          document.getElementById("trainingAnswer").classList.add("show");
+        });
+      });
+      document.querySelectorAll(".part-row").forEach(row => {
+        row.addEventListener("click", () => {
+          const detail = document.getElementById(`part-detail-${row.dataset.part}`);
+          const isOpen = row.getAttribute("aria-expanded") === "true";
+          row.setAttribute("aria-expanded", String(!isOpen));
+          row.classList.toggle("expanded", !isOpen);
+          row.querySelector(".tag").textContent = isOpen ? "展开" : "收起";
+          detail.classList.toggle("show", !isOpen);
+        });
+      });
+      renderComponentTabs();
+      renderSubTabs();
+    }
+
+    document.querySelectorAll("[data-component]").forEach(el => {
+      const component = components.find(item => item.id === el.dataset.component);
+      if (component) {
+        el.setAttribute("role", "button");
+        el.setAttribute("tabindex", "0");
+        el.setAttribute("aria-label", `打开${component.name}`);
+      }
+      el.addEventListener("click", () => setComponent(el.dataset.component, true));
+      el.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setComponent(el.dataset.component, true);
+        }
+      });
+    });
+
+    document.querySelectorAll("[data-scroll]").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelector(button.dataset.scroll).scrollIntoView({ behavior: "smooth" });
+      });
+    });
+
+    openComponent.addEventListener("click", () => {
+      document.querySelector("#component-page").scrollIntoView({ behavior: "smooth" });
+    });
+
+    setComponent("hip", false);
+  </script>
+</body>
+</html>

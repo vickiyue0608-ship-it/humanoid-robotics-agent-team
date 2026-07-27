@@ -1,0 +1,8 @@
+{
+  "name": "humanoid-robotics-learning-workbench",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node -e \"console.log('static site: no build step')\""
+  }
+}
